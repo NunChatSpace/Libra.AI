@@ -1,0 +1,42 @@
+---
+title: Librarian.AI
+---
+erDiagram
+    USERS ||--|{ USER_ROLES : has
+    ROLES ||--|{ USER_ROLES : assigned_to
+
+    BOOKS ||--o{ BOOK_CHUNKS : contains
+    BOOKS ||--o{ ETL_JOBS : has
+
+    USERS {
+        string id
+        string email
+    }
+
+    ROLES {
+        string id
+        string name
+    }
+
+    USER_ROLES {
+        string user_id
+        string role_id
+    }
+
+    BOOKS {
+        string id
+        string title
+        string status
+    }
+
+    BOOK_CHUNKS {
+        string id
+        string book_id
+        int chunk_index
+    }
+
+    ETL_JOBS {
+        string id
+        string book_id
+        string status
+    }
