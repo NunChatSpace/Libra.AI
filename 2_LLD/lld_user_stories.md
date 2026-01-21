@@ -200,3 +200,44 @@
 - ไม่รองรับการประมวลผลไฟล์ที่ไม่ใช่ PDF
 
 ---
+
+# User Story #6 — Batch Import Books from Storage Prefix
+
+**As a Librarian,**  
+**I want to place many book PDF files into a designated storage location,**  
+**so that the system can automatically create and process books in batch without manual uploads.**
+
+---
+
+## Acceptance Criteria
+- บรรณารักษ์สามารถอัปโหลดไฟล์ PDF หลายไฟล์ไปยัง **storage prefix ที่กำหนดไว้** (เช่น S3 / MinIO)
+- ระบบมี background worker ที่:
+  - list ไฟล์จาก storage prefix ตามรอบเวลา
+  - ประมวลผลเฉพาะไฟล์ที่ยังไม่เคยถูกนำเข้า
+- แต่ละไฟล์ถูกสร้างเป็น BOOK แยกกัน
+- ใช้ชื่อไฟล์ (ตัด `.pdf`) เป็นชื่อหนังสือเริ่มต้น
+- **ไม่อนุญาตให้มีชื่อไฟล์ซ้ำ**
+  - ถ้าพบชื่อซ้ำ ระบบไม่สร้าง BOOK ใหม่
+  - บันทึก error และย้ายไฟล์ไปยัง prefix `failed/`
+- ความล้มเหลวของไฟล์หนึ่ง **ไม่กระทบไฟล์อื่น**
+- บรรณารักษ์สามารถแก้ไข metadata ภายหลังได้ (US#4)
+
+---
+
+## Functional Scope
+- กำหนด storage prefix สำหรับ batch import (เช่น `import/`)
+- Background worker:
+  - list objects จาก storage prefix ตาม schedule
+  - ตรวจจับไฟล์ใหม่แบบ idempotent
+  - สร้าง BOOK และ ETL_JOB ต่อไฟล์
+  - ย้ายไฟล์ไป `processed/` หรือ `failed/` prefix
+- หนังสือที่ถูก import แสดงผลในระบบเดียวกับ upload ปกติ
+
+---
+
+## Out of Scope / Assumptions
+- ไม่รองรับการ upload ผ่าน browser ใน flow นี้
+- ไม่ merge หลายไฟล์เป็นหนังสือเดียว
+- ไม่มี concept branch / สาขา
+- ไม่รองรับโครงสร้าง prefix ซ้อนหลายระดับ
+- สิทธิ์การเข้าถึง storage ถูกจัดการนอกระบบ (admin / ops)
